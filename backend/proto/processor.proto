@@ -1,0 +1,26 @@
+// processing
+syntax = "proto3";
+package processor;
+
+import "google/protobuf/timestamp.proto";
+
+message ProcessPaymentRequest {
+  string payment_intent_id = 1;
+  string user_id = 2;
+  string payment_method_id = 3; // выбранный метод из intent
+  double amount = 4;
+  string currency = 5;
+}
+
+message ProcessingStatus {
+  string payment_intent_id = 1;
+  Status status = 2;
+  string message = 3; // текст ошибки или успеха
+  google.protobuf.Timestamp processed_at = 4;
+
+  enum Status {
+    PENDING = 0;
+    SUCCESS = 1;
+    FAILED = 2;
+  }
+}

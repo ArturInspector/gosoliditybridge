@@ -1,0 +1,17 @@
+syntax = "proto3";
+package validation;
+
+// 
+message ValidationRequest {
+    string card_number_masked = 1; // 4 numbers
+    string expiry = 2;             // mm/yy
+    double amount = 3;
+    string currency = 4;
+  }
+  
+
+message ValidationResult {
+    bool valid = 1;
+    repeated string errors = 2; 
+    string message = 3;         // text status
+}
