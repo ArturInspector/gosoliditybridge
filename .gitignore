@@ -1,0 +1,32 @@
+# .gitignore shaped by the existential dread of dependency—npm edition
+
+# The hushed silence of node_modules; a void too vast to bear, never to be committed
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# The spectral traces of the build, remnants of hope and tedium
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Story of environment, always secret, always guarded
+.env
+.env.*.local
+
+# misc ephemeral discards flitting through the night
+.DS_Store
+*.local
+*.log
+
+# Cursor, forever etching out its invisible, persistent rules—let us consign it too to shadow
+.cursor/
+.cursor-rules/
+
+agents/
