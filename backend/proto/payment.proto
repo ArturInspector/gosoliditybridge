@@ -1,0 +1,66 @@
+syntax = "proto3";
+package payment;
+
+import "google/protobuf/timestamp.proto";
+
+// method - intent - charge - refund
+
+message paymentMethod {
+    string id = 1;
+    enum Type{
+        CARD = 0;
+        WALLET = 1;
+        BANK_TRANSFER = 2;
+    }
+    Type type = 2;
+    string details = 3;
+    
+}
+
+message paymentIntent {
+    string id = 1;
+    string user_id = 2;
+    double amount = 3;
+    string currency = 4;
+    Statement statement = 5;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp updated_at = 7;
+
+    enum Statement {
+        PENDING = 0;
+        COMPLETED = 1;
+        FAILED = 2; // 1 more later
+    }
+
+    repeated paymentMethod payment_methods = 8;
+}
+
+message Charge {
+    string id = 1;
+    string payment_intent_id = 2;
+    double amount = 3;
+    string currency = 4;
+    Statement statement = 5;
+    google.protobuf.Timestamp charged_at = 6;
+
+    enum Statement {
+        PENDING = 0;
+        COMPLETED = 1;
+        FAILED = 2;
+    }
+}
+
+message Refund {
+    string id = 1;
+    string charge_id = 2;
+    double amount = 3;
+    string currency = 4;
+    Statement statement = 5;
+    google.protobuf.Timestamp refunded_at = 6;
+  
+    enum Statement {
+      PENDING = 0;
+      SUCCESS = 1;
+      FAILED = 2;
+    }
+}
