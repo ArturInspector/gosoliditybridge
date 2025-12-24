@@ -1,0 +1,36 @@
+syntax = "proto3";
+package gateway;
+
+import "google/protobuf/timestamp.proto";
+
+// front requests.
+
+message CreatePaymentRequest {
+  string user_id = 1;
+  double amount = 2;
+  string currency = 3;
+}
+
+message GetPaymentStatusRequest {
+  string payment_intent_id = 1;
+}
+
+message RefundRequest {
+  string charge_id = 1;
+  double amount = 2;
+}
+
+// message for payment 3
+
+message PaymentResponse {
+  string payment_intent_id = 1;
+  Status status = 2;
+  string message = 3;
+  google.protobuf.Timestamp updated_at = 4;
+
+  enum Status {
+    PENDING = 0;
+    SUCCESS = 1;
+    FAILED = 2;
+  }
+}

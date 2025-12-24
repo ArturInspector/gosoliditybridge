@@ -1,0 +1,27 @@
+syntax = "proto3";
+package notification;
+
+import "google/protobuf/timestamp.proto";
+
+enum NotificationType {
+  EMAIL = 0;
+  SMS = 1;
+  PUSH = 2;
+  WEBHOOK = 3;
+}
+
+
+
+message NotificationRequest {
+  string user_id = 1;
+  NotificationType type = 2;
+  string title = 3;
+  string message = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+
+message NotificationResult {
+  bool success = 1;
+  string error_message = 2;
+}

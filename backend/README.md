@@ -7,6 +7,19 @@ Architecture:
 /proto
   payment.proto
   validation.proto
+  transaction.proto
+  ledger.proto
+  notification.proto
+  processor.proto
+  validator.proto
+  gateway.proto
+  stripe.proto
+  ledger.proto
+  notification.proto
+  processor.proto
+  validator.proto
+  gateway.proto
+  stripe.proto
 
 /services
   /gateway
