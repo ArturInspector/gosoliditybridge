@@ -1,11 +1,13 @@
 syntax = "proto3";
 package payment;
 
+option go_package = "gen/go/payment";
+
 import "google/protobuf/timestamp.proto";
 
 // method - intent - charge - refund
 
-message paymentMethod {
+message PaymentMethod {
     string id = 1;
     enum Type{
         CARD = 0;
@@ -17,7 +19,7 @@ message paymentMethod {
     
 }
 
-message paymentIntent {
+message PaymentIntent {
     string id = 1;
     string user_id = 2;
     double amount = 3;
@@ -32,7 +34,7 @@ message paymentIntent {
         FAILED = 2; // 1 more later
     }
 
-    repeated paymentMethod payment_methods = 8;
+    repeated PaymentMethod payment_methods = 8;
 }
 
 message Charge {
