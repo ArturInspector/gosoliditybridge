@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['gateway:2112']
+  
+  - job_name: 'processor'
+    static_configs:
+      - targets: ['processor:2113']
+  
+  - job_name: 'validator'
+    static_configs:
+      - targets: ['validator:2114']
+  
+  - job_name: 'ledger'
+    static_configs:
+      - targets: ['ledger:2115']
+  
+  - job_name: 'mock-stripe'
+    static_configs:
+      - targets: ['mock-stripe:2116']
+  
+  - job_name: 'notification'
+    static_configs:
+      - targets: ['notification:2117']
+

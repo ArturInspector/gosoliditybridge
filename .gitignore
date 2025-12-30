@@ -1,32 +1,46 @@
-# .gitignore shaped by the existential dread of dependency—npm edition
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# The hushed silence of node_modules; a void too vast to bear, never to be committed
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
+# Test binary, built with `go test -c`
+*.test
 
-# The spectral traces of the build, remnants of hope and tedium
-dist/
-build/
-.next/
-out/
-coverage/
+# Output of the go coverage tool
+*.out
+coverage.html
 
-# Story of environment, always secret, always guarded
-.env
-.env.*.local
+# Generated protobuf code
+gen/
+*.pb.go
+*.pb.gw.go
 
-# misc ephemeral discards flitting through the night
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-*.local
+Thumbs.db
+
+# Docker
 *.log
 
-# Cursor, forever etching out its invisible, persistent rules—let us consign it too to shadow
-.cursor/
-.cursor-rules/
+# Environment
+.env
+.env.local
 
-agents/
+# Build artifacts
+dist/
