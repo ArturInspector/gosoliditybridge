@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+    
+    - name: Install dependencies
+      working-directory: backend
+      run: |
+        make install-deps
+    
+    - name: Generate proto
+      working-directory: backend
+      run: |
+        make proto
+    
+    - name: Build binaries
+      working-directory: backend
+      run: |
+        mkdir -p dist
+        GOOS=linux GOARCH=amd64 go build -o dist/bridge-linux-amd64 ./cmd/bridge
+        GOOS=darwin GOARCH=amd64 go build -o dist/bridge-darwin-amd64 ./cmd/bridge
+        GOOS=darwin GOARCH=arm64 go build -o dist/bridge-darwin-arm64 ./cmd/bridge
+        GOOS=windows GOARCH=amd64 go build -o dist/bridge-windows-amd64.exe ./cmd/bridge
+    
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: backend/dist/*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

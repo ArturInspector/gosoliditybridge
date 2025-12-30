@@ -1,0 +1,75 @@
+name: Security
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly
+
+jobs:
+  gosec:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+    
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: '-no-fail -fmt json -out gosec-report.json ./...'
+        working-directory: backend
+    
+    - name: Upload Gosec results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: gosec-report
+        path: backend/gosec-report.json
+
+  nancy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+    
+    - name: Install Nancy
+      run: |
+        go install github.com/sonatypecommunity/nancy@latest
+    
+    - name: Run Nancy vulnerability check
+      working-directory: backend
+      run: |
+        go list -json -deps | $(go env GOPATH)/bin/nancy sleuth
+
+  slither:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Slither
+      run: |
+        pip install slither-analyzer
+    
+    - name: Run Slither
+      continue-on-error: true
+      run: |
+        find . -name "*.sol" -exec slither {} \; || echo "No Solidity files found or Slither failed"
+

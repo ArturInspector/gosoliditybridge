@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+        cache-dependency-path: backend/go.sum
+    
+    - name: Install dependencies
+      working-directory: backend
+      run: |
+        make install-deps
+    
+    - name: Generate proto
+      working-directory: backend
+      run: |
+        make proto
+    
+    - name: Run tests
+      working-directory: backend
+      run: |
+        go test -v -race -coverprofile=coverage.out ./...
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./backend/coverage.out
+        flags: unittests
+        name: codecov-umbrella
+
