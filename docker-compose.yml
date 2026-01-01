@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: gosoliditybridge-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - bridge-network
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: gosoliditybridge-grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    networks:
+      - bridge-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Gateway service
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: services/gateway/Dockerfile
+    container_name: gosoliditybridge-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - GRPC_PORT=50051
+      - HTTP_PORT=8080
+      - PROMETHEUS_PORT=2112
+    networks:
+      - bridge-network
+    depends_on:
+      - processor
+      - ledger
+    restart: unless-stopped
+
+  # Processor service
+  processor:
+    build:
+      context: ./backend
+      dockerfile: services/processor/Dockerfile
+    container_name: gosoliditybridge-processor
+    environment:
+      - GRPC_PORT=50052
+      - VALIDATOR_ADDR=validator:50053
+      - LEDGER_ADDR=ledger:50054
+      - PROMETHEUS_PORT=2113
+    networks:
+      - bridge-network
+    depends_on:
+      - validator
+      - ledger
+    restart: unless-stopped
+
+  # Validator service
+  validator:
+    build:
+      context: ./backend
+      dockerfile: services/validator/Dockerfile
+    container_name: gosoliditybridge-validator
+    environment:
+      - GRPC_PORT=50053
+      - PROMETHEUS_PORT=2114
+    networks:
+      - bridge-network
+    restart: unless-stopped
+
+  # Ledger service
+  ledger:
+    build:
+      context: ./backend
+      dockerfile: services/ledger/Dockerfile
+    container_name: gosoliditybridge-ledger
+    environment:
+      - GRPC_PORT=50054
+      - DB_PATH=/data/ledger.db
+      - PROMETHEUS_PORT=2115
+    volumes:
+      - ledger-data:/data
+    networks:
+      - bridge-network
+    restart: unless-stopped
+
+  # Mock Stripe service
+  mock-stripe:
+    build:
+      context: ./backend
+      dockerfile: services/mock-stripe/Dockerfile
+    container_name: gosoliditybridge-mock-stripe
+    environment:
+      - GRPC_PORT=50055
+      - FAILURE_RATE=0.05
+      - PROMETHEUS_PORT=2116
+    networks:
+      - bridge-network
+    restart: unless-stopped
+
+  # Notification service
+  notification:
+    build:
+      context: ./backend
+      dockerfile: services/notification/Dockerfile
+    container_name: gosoliditybridge-notification
+    environment:
+      - GRPC_PORT=50056
+      - PROMETHEUS_PORT=2117
+    networks:
+      - bridge-network
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  ledger-data:
+
+networks:
+  bridge-network:
+    driver: bridge
+

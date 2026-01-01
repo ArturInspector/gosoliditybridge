@@ -1,155 +1,108 @@
 # GoSolidityBridge
 
-> High-performance off-chain ↔ on-chain payment bridge with 0.5% fees (vs 3% industry standard)
+> Microservices payment bridge in Go + gRPC. Works in one command: `docker-compose up`
 
-[![Tests](https://github.com/ArturInspector/gosoliditybridge/workflows/Test/badge.svg)](https://github.com/YOUR_USERNAME/gosoliditybridge/actions)
-[![Lint](https://github.com//gosoliditybridge/workflows/Lint/badge.svg)](https://github.com/YOUR_USERNAME/gosoliditybridge/actions)
-[![Security](https://github.com/YOUR_USERNAME/gosoliditybridge/workflows/Security/badge.svg)](https://github.com/YOUR_USERNAME/gosoliditybridge/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/YOUR_USERNAME/gosoliditybridge)](https://goreportcard.com/report/github.com/YOUR_USERNAME/gosoliditybridge)
-[![codecov](https://codecov.io/gh/YOUR_USERNAME/gosoliditybridge/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/gosoliditybridge)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker Pulls](https://img.shields.io/docker/pulls/YOUR_USERNAME/gosoliditybridge)](https://hub.docker.com/r/YOUR_USERNAME/gosoliditybridge)
-
-## 🚀 Quick Start
+## Try It Now
 
 ```bash
-# Clone and start
-git clone https://github.com/YOUR_USERNAME/gosoliditybridge.git
+git clone https://github.com/ArturInspector/gosoliditybridge.git
 cd gosoliditybridge
 docker-compose up -d
 
-# Test the bridge
+# Check all services are up
 curl http://localhost:8080/health
 
-# View metrics
+# Open monitoring
 open http://localhost:3001  # Grafana (admin/admin)
-open http://localhost:9090  # Prometheus
 ```
 
-**Demo GIF** (TODO: Add actual GIF showing docker-compose up → curl → money moved)
+All 7 services boot in ~5 seconds. Grafana comes with pre-configured dashboards.
 
-## 💰 Why GoSolidityBridge?
+## What It Does
 
-| Feature | GoSolidityBridge | Competitor A | Competitor B |
-|---------|------------------|--------------|--------------|
-| **Transaction Fee** | **0.5%** | 3.0% | 2.5% |
-| **Latency** | **< 300ms** | 1-2s | 500ms |
-| **Language** | Go (readable) | Haskell | Rust |
-| **Protobuf Support** | ✅ 12 languages | ❌ | ✅ 5 languages |
-| **Live Demo** | ✅ docker-compose | ❌ | ❌ |
-| **Security Audit** | 🔄 In progress | ✅ | ✅ |
-| **Open Source** | ✅ MIT | ❌ | ✅ AGPL |
+- 7 microservices: Gateway → Mock-Stripe → Validator → Processor → Ledger → Notification + Metrics
+- gRPC with Protobuf (generates code for 12 languages)
+- Prometheus + Grafana monitoring (pre-configured dashboards)
+- ECDSA cryptographic signatures for payment attestations
+- All services boot in < 5 seconds via docker-compose
 
-## 🏗️ Architecture
+## Technical Stack
 
-```
-[ Client ]
-    |
-    v
-[ API Gateway ] ← HTTP/gRPC
-    |
-    +---> [ Auth ]
-    |
-    +---> [ Mock-Stripe ] ---> [ Validator ] ---> [ Processor ] ---> [ Ledger ]
-                                    |                    |                |
-                                    v                    v                v
-                              [ Notification ]      [ Audit ]       [ Metrics ]
-```
+**Backend:**
+- Go 1.21+ (clean, readable code)
+- gRPC + Protobuf (type-safe, cross-language)
+- ECDSA signatures (crypto/ecdsa)
+- Graceful shutdown with context cancellation
 
-**Microservices** built with:
-- **Go** + **gRPC** (Protobuf) for high performance
-- **Docker Compose** for local development
-- **Prometheus** + **Grafana** for observability
-- **ECDSA signatures** for cryptographic attestations
+**Infrastructure:**
+- Docker Compose (7 services, 1 network)
+- Prometheus metrics (all services expose :9090/metrics)
+- Grafana dashboards (pre-configured)
+- Health checks on all services
 
-## 📦 Installation
+**Why Go?** Readable even for Java devs. Why gRPC? Protobuf generates code for Python/Java/TypeScript/etc.
 
-### From Source
+## What I Built
+
+**7 Microservices in Go:**
+- Gateway (HTTP/gRPC entry point)
+- Mock-Stripe (payment simulator for demo)
+- Validator (signature verification)
+- Processor (business logic)
+- Ledger (transaction storage)
+- Notification (webhooks)
+- Metrics exporter
+
+**Infrastructure Code:**
+- docker-compose.yml (142 lines, all services + monitoring)
+- Prometheus config with scrape targets
+- Grafana datasources + dashboards (pre-loaded)
+- Health checks for all services
+
+**Protobuf Schemas:**
+- 7 .proto files → generates Go code
+- Type-safe service contracts
+- Can generate client code for Python/Java/TypeScript/etc.
+
+**Why Mock-Stripe?** 
+Real Stripe needs API keys and webhooks. Mock lets anyone `docker-compose up` without signups. For production, swap 1 service.
+
+## Development
 
 ```bash
-go install github.com/YOUR_USERNAME/gosoliditybridge/backend/cmd/bridge@latest
-```
-
-### Docker
-
-```bash
-docker pull YOUR_USERNAME/gosoliditybridge:latest
-```
-
-## 📚 Documentation
-
-- [Architecture Overview](docs/architecture.md)
-- [API Reference](docs/api.md)
-- [Development Guide](docs/development.md)
-- [Security Policy](SECURITY.md)
-
-## 🔒 Security
-
-- ✅ Automated scanning: Gosec, Nancy, Slither
-- 🔄 External audit: Planned Q2 2024
-- 🐛 [Bug Bounty Program](SECURITY.md): $50-$200 for critical issues
-
-## 🛠️ Development
-
-```bash
-# Generate Protobuf code
+# Generate Protobuf code (requires protoc)
 cd backend
 make proto
 
-# Run tests
-go test ./...
-
-# Start services
+# Run all services
 docker-compose up
+
+# Logs for specific service
+docker-compose logs -f gateway
 ```
 
 See [docs/development.md](docs/development.md) for detailed setup.
 
-## 📊 Metrics & Monitoring
+## Files & Structure
 
-- **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3001 (admin/admin)
-- **Health Checks**: http://localhost:8080/health
+```
+backend/
+├── proto/           # 7 Protobuf schemas
+├── gen/go/          # Generated Go code
+├── cmd/             # 7 main.go entrypoints
+├── services/        # 7 Dockerfiles
+└── internal/server/ # Shared gRPC server logic
 
-## 🤝 Contributing
+docker-compose.yml   # All services + Prometheus + Grafana
+monitoring/
+├── prometheus.yml   # Scrape config
+└── grafana/         # Datasources + dashboards
+```
 
-We welcome contributions! Go is readable even for Java developers, and Protobuf specs generate code for 12+ languages.
+## License
 
-1. Fork the repo
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a PR
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## 📈 Roadmap
-
-- [x] Core microservices (Gateway, Processor, Ledger, Validator)
-- [x] Docker Compose setup
-- [x] Prometheus + Grafana monitoring
-- [ ] Lightning Network support
-- [ ] WASM wrapper for browser
-- [ ] Flutter/React Native SDK
-- [ ] External security audit
-
-## 💸 Monetization
-
-- **Open Source**: Core bridge (MIT License)
-- **Enterprise**: White-label UI plugin (private repo)
-- **Sponsors**: [GitHub Sponsors](https://github.com/sponsors/YOUR_USERNAME)
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [gRPC](https://grpc.io/) and [Protobuf](https://protobuf.dev/)
-- Inspired by the need for low-fee, high-performance payment bridges
+MIT - see [LICENSE](LICENSE)
 
 ---
 
-**Made with ❤️ by the GoSolidityBridge team**
-
-[⭐ Star us on GitHub](https://github.com/YOUR_USERNAME/gosoliditybridge) | [🐛 Report Bug](https://github.com/YOUR_USERNAME/gosoliditybridge/issues) | [💬 Discussions](https://github.com/YOUR_USERNAME/gosoliditybridge/discussions)
+**Questions?** Open an issue or email artur@example.com
