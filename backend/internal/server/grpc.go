@@ -69,13 +69,36 @@ func (s *GRPCServer) GracefulStop(ctx context.Context) error {
 	}
 }
 
+type ShutdownFunc func(ctx context.Context) error
+
 func WaitForShutdown() os.Signal {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	return <-sigChan
 }
 
-func RunWithShutdown(srv *GRPCServer, serviceName string) error {
+func ShutdownAll(shutdownFuncs []ShutdownFunc, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	errors := make(chan error, len(shutdownFuncs))
+	for _, fn := range shutdownFuncs {
+		go func(fn ShutdownFunc) {
+			errors <- fn(ctx)
+		}(fn)
+	}
+
+	var lastErr error
+	for i := 0; i < len(shutdownFuncs); i++ {
+		if err := <-errors; err != nil && err != context.DeadlineExceeded {
+			lastErr = err
+		}
+	}
+	return lastErr
+}
+
+// RunWithShutdown runs server with optional additional shutdown functions
+func RunWithShutdown(srv *GRPCServer, serviceName string, additionalShutdown ...ShutdownFunc) error {
 	if err := srv.Start(); err != nil {
 		return err
 	}
@@ -84,10 +107,8 @@ func RunWithShutdown(srv *GRPCServer, serviceName string) error {
 	log.Printf("signal: %v", sig)
 	log.Printf("shutting down %s...", serviceName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := srv.GracefulStop(ctx); err != nil {
+	allShutdown := append([]ShutdownFunc{srv.GracefulStop}, additionalShutdown...)
+	if err := ShutdownAll(allShutdown, 5*time.Second); err != nil {
 		return fmt.Errorf("shutdown error: %w", err)
 	}
 
